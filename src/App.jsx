@@ -8,7 +8,7 @@ import Leaves from "./components/Leaves";
 import Profile from "./components/Profile";
 import Feedback from "./components/Feedback";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
 // Icons as SVG components
 const DashboardIcon = () => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
