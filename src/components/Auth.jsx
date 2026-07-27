@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useToast } from "./Toast";
 
-const API_URL = "https://pulsehr-backend-quod.onrender.com/api";
-
+const API_URL = "http://localhost:5000/api";
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const toast = useToast();
