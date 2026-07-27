@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useToast } from "./Toast";
 
+// Updated correct backend URL
 const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
-
 function Leaves({ token, user, isAdmin }) {
   const [leaves, setLeaves] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const toast = useToast();
+
+  const authToken = token || localStorage.getItem("token");
+
   const [formData, setFormData] = useState({
     leaveType: "casual",
     startDate: new Date().toISOString().split("T")[0],
@@ -20,7 +23,7 @@ function Leaves({ token, user, isAdmin }) {
         ? `${API_URL}/leaves`
         : `${API_URL}/leaves/employee/${user._id}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (res.ok) {
@@ -33,9 +36,11 @@ function Leaves({ token, user, isAdmin }) {
   };
 
   useEffect(() => {
-    loadLeaves();
+    if (user?._id) {
+      loadLeaves();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?._id]);
 
   const openModal = () => {
     const today = new Date().toISOString().split("T")[0];
@@ -70,7 +75,7 @@ function Leaves({ token, user, isAdmin }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({ ...formData, employeeId: user._id }),
       });
@@ -94,14 +99,14 @@ function Leaves({ token, user, isAdmin }) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({ status }),
       });
 
       if (res.ok) {
         toast.success(
-          `Leave ${status === "approved" ? "approved" : "rejected"} successfully`,
+          `Leave ${status === "approved" ? "approved" : "rejected"} successfully`
         );
         loadLeaves();
       } else {

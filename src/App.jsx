@@ -9,7 +9,6 @@ import Profile from "./components/Profile";
 import Feedback from "./components/Feedback";
 
 const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
-
 // Icons as SVG components
 const DashboardIcon = () => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -146,9 +145,12 @@ function App() {
   };
 
   const loadProfile = async () => {
+    const currentToken = token || localStorage.getItem("token");
+    if (!currentToken) return;
+
     try {
       const res = await fetch(`${API_URL}/auth/profile`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${currentToken}` },
       });
       if (res.ok) {
         const data = await res.json();
@@ -162,10 +164,12 @@ function App() {
   };
 
   const loadNotifications = async () => {
+    const currentToken = token || localStorage.getItem("token");
+    if (!currentToken) return;
+
     try {
-      // Load pending leaves count
       const leavesRes = await fetch(`${API_URL}/leaves`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${currentToken}` },
       });
 
       const notifs = [];
@@ -184,10 +188,9 @@ function App() {
         }
       }
 
-      // Load pending feedback count for admin
       if (user?.role === "admin") {
         const feedbackRes = await fetch(`${API_URL}/feedback/pending-count`, {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${currentToken}` },
         });
 
         if (feedbackRes.ok) {
@@ -214,17 +217,14 @@ function App() {
     if (token) {
       loadProfile();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   useEffect(() => {
-    if (user) {
+    if (user && token) {
       loadNotifications();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, token]);
 
-  // Close notifications when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -240,9 +240,9 @@ function App() {
   }, []);
 
   const handleLogin = (newToken, userData) => {
+    localStorage.setItem("token", newToken);
     setToken(newToken);
     setUser(userData);
-    localStorage.setItem("token", newToken);
   };
 
   const toggleSidebar = () => {
@@ -255,51 +255,31 @@ function App() {
 
   const isAdmin = user.role === "admin";
   const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2)
+    : "U";
 
-  // Navigation items based on role
   const navItems = isAdmin
     ? [
-        {
-          key: "dashboard",
-          icon: DashboardIcon,
-          label: sidebarLabels.dashboard,
-        },
-        {
-          key: "employees",
-          icon: EmployeesIcon,
-          label: sidebarLabels.employees,
-        },
-        {
-          key: "attendance",
-          icon: AttendanceIcon,
-          label: sidebarLabels.attendance,
-        },
+        { key: "dashboard", icon: DashboardIcon, label: sidebarLabels.dashboard },
+        { key: "employees", icon: EmployeesIcon, label: sidebarLabels.employees },
+        { key: "attendance", icon: AttendanceIcon, label: sidebarLabels.attendance },
         { key: "leaves", icon: LeavesIcon, label: sidebarLabels.leaves },
         { key: "feedback", icon: FeedbackIcon, label: sidebarLabels.feedback },
       ]
     : [
-        {
-          key: "dashboard",
-          icon: DashboardIcon,
-          label: sidebarLabels.dashboard,
-        },
-        {
-          key: "attendance",
-          icon: AttendanceIcon,
-          label: sidebarLabels.attendance,
-        },
+        { key: "dashboard", icon: DashboardIcon, label: sidebarLabels.dashboard },
+        { key: "attendance", icon: AttendanceIcon, label: sidebarLabels.attendance },
         { key: "leaves", icon: LeavesIcon, label: sidebarLabels.leaves },
         { key: "feedback", icon: FeedbackIcon, label: sidebarLabels.feedback },
       ];
 
   return (
     <div className="app">
-      {/* Sidebar */}
       <aside className={`sidebar ${sidebarExpanded ? "expanded" : ""}`}>
         <div className="sidebar-logo">
           <LogoIcon />
@@ -310,7 +290,9 @@ function App() {
           {navItems.map(({ key, icon: Icon, label }) => (
             <button
               key={key}
-              className={`sidebar-item ${!sidebarExpanded ? "tooltip" : ""} ${activeTab === key ? "active" : ""}`}
+              className={`sidebar-item ${!sidebarExpanded ? "tooltip" : ""} ${
+                activeTab === key ? "active" : ""
+              }`}
               onClick={() => setActiveTab(key)}
               data-tooltip={label}
             >
@@ -324,7 +306,9 @@ function App() {
 
         <div className="sidebar-bottom">
           <button
-            className={`sidebar-item ${!sidebarExpanded ? "tooltip" : ""} ${activeTab === "profile" ? "active" : ""}`}
+            className={`sidebar-item ${
+              !sidebarExpanded ? "tooltip" : ""
+            } ${activeTab === "profile" ? "active" : ""}`}
             onClick={() => setActiveTab("profile")}
             data-tooltip="Profile"
           >
@@ -342,11 +326,9 @@ function App() {
         </div>
       </aside>
 
-      {/* Main Content */}
       <main
         className={`main-content ${sidebarExpanded ? "sidebar-expanded" : ""}`}
       >
-        {/* Header */}
         <header className="header">
           <div className="header-left">
             <button className="menu-toggle" onClick={toggleSidebar}>
@@ -422,7 +404,6 @@ function App() {
           </div>
         </header>
 
-        {/* Content Area */}
         <div className="content">
           {activeTab === "dashboard" && (
             <Dashboard token={token} user={user} isAdmin={isAdmin} />

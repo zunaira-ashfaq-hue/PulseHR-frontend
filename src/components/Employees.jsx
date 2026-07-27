@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "./Toast";
 
 const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
-
 function Employees({ token, isAdmin }) {
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);

@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useToast } from "./Toast";
 
 const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
-
 function Feedback({ token, isAdmin }) {
   const [feedbacks, setFeedbacks] = useState([]);
   const [showModal, setShowModal] = useState(false);

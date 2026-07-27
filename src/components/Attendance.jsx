@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useToast } from "./Toast";
 
+// Updated correct backend URL
 const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
-
 function Attendance({ token, user, isAdmin }) {
   const [attendance, setAttendance] = useState([]);
   const [employees, setEmployees] = useState([]);
@@ -10,6 +10,9 @@ function Attendance({ token, user, isAdmin }) {
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [loading, setLoading] = useState(false);
   const toast = useToast();
+
+  const authToken = token || localStorage.getItem("token");
+
   const [formData, setFormData] = useState({
     employeeId: "",
     date: new Date().toISOString().split("T")[0],
@@ -25,7 +28,7 @@ function Attendance({ token, user, isAdmin }) {
         ? `${API_URL}/attendance`
         : `${API_URL}/attendance/employee/${user._id}`;
       const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (res.ok) {
@@ -38,11 +41,11 @@ function Attendance({ token, user, isAdmin }) {
   };
 
   const loadTodayAttendance = async () => {
-    if (isAdmin) return; // Admins don't need today's attendance
+    if (isAdmin) return;
 
     try {
       const res = await fetch(`${API_URL}/attendance/today`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (res.ok) {
@@ -55,20 +58,21 @@ function Attendance({ token, user, isAdmin }) {
   };
 
   useEffect(() => {
-    loadAttendance();
-    loadTodayAttendance();
+    if (user?._id) {
+      loadAttendance();
+      loadTodayAttendance();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?._id]);
 
   const loadEmployees = async () => {
     try {
       const res = await fetch(`${API_URL}/employees`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${authToken}` },
       });
 
       if (res.ok) {
         const data = await res.json();
-        // Filter out the current admin user from the list - admins cannot mark their own attendance
         const filteredEmployees = data.filter((emp) => emp._id !== user._id);
         setEmployees(filteredEmployees);
       }
@@ -97,7 +101,6 @@ function Attendance({ token, user, isAdmin }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Prevent admin from marking their own attendance
     if (formData.employeeId === user._id) {
       toast.error("You cannot mark your own attendance");
       return;
@@ -108,7 +111,7 @@ function Attendance({ token, user, isAdmin }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(formData),
       });
@@ -133,7 +136,7 @@ function Attendance({ token, user, isAdmin }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 

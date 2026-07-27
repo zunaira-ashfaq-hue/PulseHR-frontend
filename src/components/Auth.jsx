@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useToast } from "./Toast";
 
-const API_URL = "https://pulsehr-backend-quod.onrender.com/api";
-
+const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const toast = useToast();
@@ -24,12 +23,13 @@ function Auth({ onLogin }) {
     });
   };
 
+
   // LOGIN
   const handleLogin = async (e) => {
     e.preventDefault();
 
     if (!formData.email || !formData.password) {
-      toast.error("Please fill in all fields");
+      toast.error("Please fill all fields");
       return;
     }
 
@@ -45,26 +45,57 @@ function Auth({ onLogin }) {
         }),
       });
 
+
       const data = await res.json();
 
-      console.log("Login Status:", res.status);
       console.log("Login Response:", data);
 
+
       if (res.ok) {
+
+        const token = data.token;
+
+        // backend response handle
+        const user = data.employee || data.user || data.data;
+
+
+        console.log("TOKEN:", token);
+        console.log("USER:", user);
+
+
+        if (!token || !user) {
+          toast.error("Invalid login response");
+          return;
+        }
+
+
+        localStorage.setItem("token", token);
+
         toast.success("Login successful!");
-        onLogin(data.token, data.employee);
+
+        onLogin(token, user);
+
+
       } else {
         toast.error(data.message || "Login failed");
       }
+
+
     } catch (error) {
-      console.error("Login Error:", error);
-      toast.error("Error connecting to server");
+
+      console.log("Login Error:", error);
+      toast.error("Server connection error");
+
     }
   };
 
+
+
   // REGISTER
   const handleRegister = async (e) => {
+
     e.preventDefault();
+
 
     const {
       email,
@@ -76,27 +107,34 @@ function Auth({ onLogin }) {
       role,
     } = formData;
 
-    if (!email || !password || !name || !department || !position || !phone) {
-      toast.error("Please fill in all fields");
+
+
+    if (
+      !email ||
+      !password ||
+      !name ||
+      !department ||
+      !position ||
+      !phone
+    ) {
+      toast.error("Please fill all fields");
       return;
     }
 
-    console.log("Sending Data:", {
-      email,
-      password,
-      name,
-      department,
-      position,
-      phone,
-      role,
-    });
+
 
     try {
+
+
       const res = await fetch(`${API_URL}/auth/register`, {
+
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
+
         body: JSON.stringify({
           email,
           password,
@@ -106,181 +144,233 @@ function Auth({ onLogin }) {
           phone,
           role,
         }),
+
       });
 
-      console.log("Register Status:", res.status);
+
 
       const data = await res.json();
 
+
       console.log("Register Response:", data);
 
-      if (res.ok) {
-        toast.success("Registration successful! Please login.");
+
+
+      if(res.ok){
+
+        toast.success(
+          "Registration successful! Please login"
+        );
+
 
         setFormData({
-          email: "",
-          password: "",
-          name: "",
-          role: "employee",
-          department: "",
-          position: "",
-          phone: "",
+          email:"",
+          password:"",
+          name:"",
+          role:"employee",
+          department:"",
+          position:"",
+          phone:"",
         });
 
+
         setIsLogin(true);
-      } else {
-        toast.error(data.message || "Registration failed");
+
+
       }
-    } catch (error) {
-      console.error("Register Error:", error);
-      toast.error("Error connecting to server");
+      else{
+
+        toast.error(
+          data.message || "Registration failed"
+        );
+
+      }
+
+
     }
+    catch(error){
+
+      console.log(error);
+      toast.error("Server error");
+
+    }
+
   };
+
+
 
   return (
     <div className="auth-page">
+
       <div className="auth-container">
+
         <div className="auth-card">
+
+
           <div className="auth-header">
-            <h1>PulseHR: Employee Management System</h1>
-            <p>Streamline your workforce management</p>
+
+            <h1>
+              PulseHR: Employee Management System
+            </h1>
+
+            <p>
+              Streamline your workforce management
+            </p>
+
           </div>
 
+
+
           <div className="auth-body">
+
+
             <div className="tabs">
+
               <button
-                className={`tab ${isLogin ? "active" : ""}`}
-                onClick={() => setIsLogin(true)}
+                className={`tab ${isLogin ? "active":""}`}
+                onClick={()=>setIsLogin(true)}
               >
                 Login
               </button>
 
+
               <button
-                className={`tab ${!isLogin ? "active" : ""}`}
-                onClick={() => setIsLogin(false)}
+                className={`tab ${!isLogin ? "active":""}`}
+                onClick={()=>setIsLogin(false)}
               >
                 Register
               </button>
+
+
             </div>
 
-            {isLogin ? (
+
+
+            {
+              isLogin ? (
+
               <form onSubmit={handleLogin}>
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
 
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                </div>
 
-                <button type="submit" className="btn btn-primary btn-full">
+                <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                />
+
+
+                <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                />
+
+
+                <button className="btn btn-primary btn-full">
                   Sign In
                 </button>
+
+
               </form>
-            ) : (
+
+
+              ):(
+
+
               <form onSubmit={handleRegister}>
-                <div className="form-group">
-                  <label>Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                </div>
 
-                <div className="form-group">
-                  <label>Email Address</label>
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={handleChange}
-                  />
-                </div>
 
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    name="password"
-                    placeholder="Create a password"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                </div>
+                <input
+                name="name"
+                placeholder="Full Name"
+                value={formData.name}
+                onChange={handleChange}
+                />
 
-                <div className="form-group">
-                  <label>Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                  >
-                    <option value="employee">Employee</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
 
-                <div className="form-group">
-                  <label>Department</label>
-                  <input
-                    type="text"
-                    name="department"
-                    placeholder="IT, HR, Sales"
-                    value={formData.department}
-                    onChange={handleChange}
-                  />
-                </div>
+                <input
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                />
 
-                <div className="form-group">
-                  <label>Position</label>
-                  <input
-                    type="text"
-                    name="position"
-                    placeholder="Developer, Manager"
-                    value={formData.position}
-                    onChange={handleChange}
-                  />
-                </div>
 
-                <div className="form-group">
-                  <label>Phone Number</label>
-                  <input
-                    type="text"
-                    name="phone"
-                    placeholder="+92 300 1234567"
-                    value={formData.phone}
-                    onChange={handleChange}
-                  />
-                </div>
+                <input
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                />
 
-                <button type="submit" className="btn btn-primary btn-full">
+
+                <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                >
+
+                  <option value="employee">
+                    Employee
+                  </option>
+
+                  <option value="admin">
+                    Admin
+                  </option>
+
+                </select>
+
+
+                <input
+                name="department"
+                placeholder="Department"
+                value={formData.department}
+                onChange={handleChange}
+                />
+
+
+                <input
+                name="position"
+                placeholder="Position"
+                value={formData.position}
+                onChange={handleChange}
+                />
+
+
+                <input
+                name="phone"
+                placeholder="Phone"
+                value={formData.phone}
+                onChange={handleChange}
+                />
+
+
+                <button className="btn btn-primary btn-full">
                   Create Account
                 </button>
+
+
               </form>
-            )}
+
+              )
+            }
+
+
           </div>
+
+
         </div>
+
       </div>
+
     </div>
   );
 }
+
 
 export default Auth;

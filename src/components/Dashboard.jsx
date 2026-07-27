@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 
 const API_URL = "https://pulsehr-backend-sa06.onrender.com/api";
-
 // Icons
 const FormIcon = () => (
   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
