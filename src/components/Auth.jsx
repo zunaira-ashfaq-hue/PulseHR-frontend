@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { useToast } from "./Toast";
 
-const API_URL = "http://localhost:5000/api";
+// Dynamic API URL: Automatically switch between local & production server
+const API_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : "https://pulse-hr-backend-zunairashfaq278-9606s.vercel.app/api"; // Aapka backend URL
+
 function Auth({ onLogin }) {
   const [isLogin, setIsLogin] = useState(true);
   const toast = useToast();
@@ -51,7 +56,18 @@ function Auth({ onLogin }) {
 
       if (res.ok) {
         toast.success("Login successful!");
-        onLogin(data.token, data.employee);
+
+        // Token & Employee data secure save in LocalStorage
+        if (data.token) localStorage.setItem("token", data.token);
+        if (data.employee) localStorage.setItem("user", JSON.stringify(data.employee));
+
+        // Callback call
+        if (onLogin) {
+          onLogin(data.token, data.employee);
+        }
+
+        // Fresh page load redirect to completely remove login loop issue
+        window.location.href = "/dashboard";
       } else {
         toast.error(data.message || "Login failed");
       }
@@ -80,16 +96,6 @@ function Auth({ onLogin }) {
       return;
     }
 
-    console.log("Sending Data:", {
-      email,
-      password,
-      name,
-      department,
-      position,
-      phone,
-      role,
-    });
-
     try {
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
@@ -107,11 +113,7 @@ function Auth({ onLogin }) {
         }),
       });
 
-      console.log("Register Status:", res.status);
-
       const data = await res.json();
-
-      console.log("Register Response:", data);
 
       if (res.ok) {
         toast.success("Registration successful! Please login.");
